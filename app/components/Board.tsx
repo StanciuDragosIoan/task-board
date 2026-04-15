@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -19,30 +19,135 @@ import { COLUMNS, SAMPLE_TASKS } from "@/app/types";
 import { Column } from "./Column";
 import { TaskCard } from "./TaskCard";
 import { TaskModal } from "./TaskModal";
+import { supabase } from "../lib/supabase";
 
 type ModalState =
   | { open: false }
   | { open: true; task?: Task; defaultColumnId?: string };
 
 export function Board() {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    // if (typeof window === "undefined") return SAMPLE_TASKS;
-    // try {
-    //   const stored = localStorage.getItem("taskboard-tasks");
-    //   return stored ? (JSON.parse(stored) as Task[]) : SAMPLE_TASKS;
-    // } catch {
-    //   return SAMPLE_TASKS;
-    // }
-    return SAMPLE_TASKS;
-  });
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("taskboard-tasks");
-    if (stored) {
-      setTasks(JSON.parse(stored) as Task[]);
+    async function loadTasks() {
+      setLoading(true);
+
+      const { data, error } = await supabase.from("tasks").select("*");
+
+      if (error) {
+        console.error("Load error:", error);
+        setLoading(false);
+        return;
+      }
+
+      setTasks(
+        (data ?? []).map((t) => ({
+          id: t.id,
+          title: t.title,
+          columnId: t.column_id,
+          description: t.description ?? "",
+          priority: t.priority ?? "normal",
+          tags: t.tags ?? [],
+          assignee: t.assignee ?? null,
+          from: t.from ?? "",
+        })),
+      );
+
+      setLoading(false);
     }
+
+    loadTasks();
   }, []);
+
+  async function addTask(task: Omit<Task, "id">) {
+    const payload = {
+      title: task.title,
+      column_id: task.columnId,
+      description: task.description ?? "",
+      priority: task.priority ?? "normal",
+      tags: task.tags ?? [],
+      assignee: task.assignee ?? null,
+    };
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Insert error:", error);
+      return;
+    }
+
+    // IMPORTANT: use DB response
+    setTasks((prev) => [
+      ...prev,
+      {
+        id: data.id,
+        title: data.title,
+        columnId: data.column_id,
+        description: data.description,
+        priority: data.priority,
+        tags: data.tags,
+        assignee: data.assignee,
+        from: data.from,
+      },
+    ]);
+  }
+
+  async function updateTask(updated: Task) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        title: updated.title,
+        column_id: updated.columnId,
+        description: updated.description,
+        priority: updated.priority,
+        tags: updated.tags,
+        assignee: updated.assignee,
+      })
+      .eq("id", updated.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Update error:", error);
+      return;
+    }
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === updated.id
+          ? {
+              id: data.id,
+              title: data.title,
+              columnId: data.column_id,
+              description: data.description,
+              priority: data.priority,
+              tags: data.tags,
+              assignee: data.assignee,
+              from: data.from,
+            }
+          : t,
+      ),
+    );
+  }
+
+  async function deleteTask(id: string) {
+    const { error } = await supabase.from("tasks").delete().eq("id", id);
+
+    if (error) {
+      console.error("Delete error:", error);
+      return;
+    }
+
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const dragStartColumnRef = useRef<string | null>(null);
   const [isDark, setIsDark] = useState(true);
   const [modal, setModal] = useState<ModalState>({ open: false });
 
@@ -72,7 +177,9 @@ export function Board() {
   );
 
   function handleDragStart({ active }: DragStartEvent) {
-    setActiveTask(tasks.find((t) => t.id === active.id) ?? null);
+    const task = tasks.find((t) => t.id === String(active.id)) ?? null;
+    setActiveTask(task);
+    dragStartColumnRef.current = task?.columnId ?? null;
   }
 
   function handleDragOver({ active, over }: DragOverEvent) {
@@ -98,35 +205,29 @@ export function Board() {
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
+    const startColumn = dragStartColumnRef.current;
+    dragStartColumnRef.current = null;
     setActiveTask(null);
     if (!over) return;
 
     const activeId = String(active.id);
     const overId = String(over.id);
-    if (activeId === overId) return;
 
     const draggedTask = tasks.find((t) => t.id === activeId);
-    const targetTask = tasks.find((t) => t.id === overId);
+    if (!draggedTask) return;
 
-    // Reorder within the same column
-    if (
-      draggedTask &&
-      targetTask &&
-      draggedTask.columnId === targetTask.columnId
-    ) {
-      const col = draggedTask.columnId;
-      const columnTasks = tasks.filter((t) => t.columnId === col);
-      const oldIdx = columnTasks.findIndex((t) => t.id === activeId);
-      const newIdx = columnTasks.findIndex((t) => t.id === overId);
-      if (oldIdx !== newIdx) {
-        const reordered = arrayMove(columnTasks, oldIdx, newIdx);
-        setTasks((prev) => [
-          ...prev.filter((t) => t.columnId !== col),
-          ...reordered,
-        ]);
-      }
+    const overColumn = COLUMNS.find((c) => c.id === overId);
+    const overTask = tasks.find((t) => t.id === overId);
+    const targetColumnId = overColumn?.id ?? overTask?.columnId;
+    if (!targetColumnId) return;
+
+    // handleDragOver already updated local state optimistically, so compare
+    // against where the drag started — not the current (already-moved) state.
+    if (startColumn !== targetColumnId) {
+      updateTask({ ...draggedTask, columnId: targetColumnId });
     }
   }
+  
 
   function openNewTask(defaultColumnId?: string) {
     setModal({ open: true, defaultColumnId });
@@ -138,17 +239,15 @@ export function Board() {
 
   function handleSave(taskData: Task | Omit<Task, "id">) {
     if ("id" in taskData) {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskData.id ? taskData : t)),
-      );
+      updateTask(taskData);
     } else {
-      setTasks((prev) => [...prev, { ...taskData, id: crypto.randomUUID() }]);
+      addTask(taskData);
     }
     setModal({ open: false });
   }
 
   function handleDelete(id: string) {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    deleteTask(id);
     setModal({ open: false });
   }
 
