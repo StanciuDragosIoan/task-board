@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Class-based dark mode — toggled by adding .dark to <html> */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Theme tokens (light) ───────────────────────────── */
+:root {
+  --bg-board:       #eef0f8;
+  --bg-col:         #ffffff;
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #f5f5ff;
+
+  --text-hi:        #12122a;
+  --text-lo:        #5a5a80;
+  --text-dim:       #9999b8;
+
+  --border:         rgba(18, 18, 42, 0.08);
+  --border-strong:  rgba(18, 18, 42, 0.18);
+
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-drag:    0 12px 40px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* ── Theme tokens (dark) ────────────────────────────── */
+.dark {
+  --bg-board:       #07070f;
+  --bg-col:         #0e0e1c;
+  --bg-card:        #161628;
+  --bg-card-hover:  #1e1e32;
+
+  --text-hi:        #e4e4f8;
+  --text-lo:        #8888aa;
+  --text-dim:       #55557a;
+
+  --border:         rgba(255, 255, 255, 0.06);
+  --border-strong:  rgba(255, 255, 255, 0.14);
+
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.5);
+  --shadow-drag:    0 16px 48px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* ── Base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-board);
+  color: var(--text-hi);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbars ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
 }
