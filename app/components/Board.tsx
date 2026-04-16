@@ -62,6 +62,7 @@ export function Board() {
 
   async function addTask(task: Omit<Task, "id">) {
     const payload = {
+      id: crypto.randomUUID(),
       title: task.title,
       column_id: task.columnId,
       description: task.description ?? "",
@@ -227,7 +228,6 @@ export function Board() {
       updateTask({ ...draggedTask, columnId: targetColumnId });
     }
   }
-  
 
   function openNewTask(defaultColumnId?: string) {
     setModal({ open: true, defaultColumnId });

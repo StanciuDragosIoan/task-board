@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskBoard
+
+A Kanban-style task management board built with Next.js, Supabase, drag-and-drop via dnd-kit, and Tailwind CSS v4.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the board.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.local.example` to `.env.local` and fill in your Supabase credentials:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
 
-## Learn More
+## Learning
 
-To learn more about Next.js, take a look at the following resources:
+The `learning/` directory contains documentation for understanding and rebuilding this app:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| File | What it covers |
+|---|---|
+| `howItWorks.md` | Codebase overview — stack, data model, component breakdown, key flows |
+| `howToRebuild.md` | Step-by-step guide to rebuilding with the real stack (Next.js + Supabase + dnd-kit + Tailwind v4) |
+| `howToBuildPrototype.md` | Vanilla JS prototype — same UI, no libraries, localStorage, drag-and-drop from scratch |
+| `howToBuildBasicPrototype.md` | Stripped-down vanilla prototype (~80 lines of JS) to understand the core loop |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+To read them with syntax highlighting and a table of contents, serve the `learning/` directory with a local server and open `renderer.html`:
 
-## Deploy on Vercel
+```bash
+cd learning
+npx serve .
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Then open [http://localhost:3000](http://localhost:3000) (or whichever port `serve` picks) and select a doc from the dropdown.

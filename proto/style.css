@@ -1,0 +1,179 @@
+/* ── Reset ─────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Base ──────────────────────────────── */
+body {
+    background: #07070f;
+    color: #e4e4f8;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+}
+
+/* ── Header ────────────────────────────── */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 24px;
+    height: 52px;
+    background: #0e0e1c;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #a78bfa, #38bdf8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+
+h1 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e4e4f8;
+}
+
+/* ── Board ─────────────────────────────── */
+.board {
+    display: flex;
+    gap: 16px;
+    padding: 24px;
+    align-items: flex-start;
+    overflow-x: auto;
+}
+
+/* ── Column ────────────────────────────── */
+.column {
+    width: 260px;
+    flex-shrink: 0;
+    background: #0e0e1c;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 12px;
+    /* Each column sets --col-color on itself so CSS can use it */
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Glow effect when a card is dragged over */
+.column.drag-over {
+    border-color: var(--col-color);
+    box-shadow: 0 0 0 1px var(--col-color), 0 0 20px color-mix(in srgb, var(--col-color) 20%, transparent);
+}
+
+.col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.col-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.col-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.col-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8888aa;
+}
+
+.col-count {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #55557a;
+}
+
+.add-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: transparent;
+    color: #55557a;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1;
+}
+
+.add-btn:hover {
+    color: var(--col-color);
+    border-color: var(--col-color);
+}
+
+/* ── Cards ─────────────────────────────── */
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 40px;
+}
+
+.card {
+    background: #161628;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #e4e4f8;
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.card:hover {
+    background: #1e1e32;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* The original card fades while being dragged */
+.card.dragging {
+    opacity: 0.3;
+}
+
+/* ── Inline add input ──────────────────── */
+.add-input {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: #161628;
+    color: #e4e4f8;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+}
+
+.add-input:focus {
+    border-color: #a78bfa;
+}
